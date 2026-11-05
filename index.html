@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400&display=swap" rel="stylesheet">
+</head>
+<body>
+<title>Daily Update Hub</title>
+<style>
+/* Layout: Hub-style app shell — navy rail on the left (project switcher + nav), working canvas on the right with a slim hero per view. */
+:root {
+  --washed: #053057; --neon: #00EDED; --lt: #A2F3F3; --cool: #314550;
+  --bg: #F4F3F0; --surface: #FFFFFF; --surface-2: #ECEBE6; --ink: #053057; --muted: #4B5D6A; --rule: #DCDAD3;
+  --rail: #053057; --rail-ink: #F4F3F0; --rail-muted: #9DB3C4; --rail-hover: rgba(255,255,255,.07); --rail-active: rgba(0,237,237,.14);
+  --accent: #053057; --accent-ink: #FFFFFF; --hilite: #A2F3F3; --hilite-ink: #053057;
+  --ok: #1F7A4D; --ok-bg: #DDF2E6; --warn: #8A5A00; --warn-bg: #FBEBC8; --bad: #A12A2A; --bad-bg: #F8DEDB; --idle: #4B5D6A; --idle-bg: #E6E5DF;
+  --focus: #0090A0;
+  --f-display: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-body: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-data: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0B0D0E; --surface: #1A1A1A; --surface-2: #222628; --ink: #F4F3F0; --muted: #A9B6BF; --rule: #314550;
+  --rail: #053057; --rail-ink: #F4F3F0; --rail-muted: #9DB3C4;
+  --accent: #00EDED; --accent-ink: #053057; --hilite: #314550; --hilite-ink: #A2F3F3;
+  --ok: #7FD9A8; --ok-bg: #12301F; --warn: #F2C46B; --warn-bg: #3A2C0D; --bad: #F29A92; --bad-bg: #3C1715; --idle: #A9B6BF; --idle-bg: #262B2E;
+  --focus: #00EDED; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0B0D0E; --surface: #1A1A1A; --surface-2: #222628; --ink: #F4F3F0; --muted: #A9B6BF; --rule: #314550;
+  --rail: #053057; --rail-ink: #F4F3F0; --rail-muted: #9DB3C4;
+  --accent: #00EDED; --accent-ink: #053057; --hilite: #314550; --hilite-ink: #A2F3F3;
+  --ok: #7FD9A8; --ok-bg: #12301F; --warn: #F2C46B; --warn-bg: #3A2C0D; --bad: #F29A92; --bad-bg: #3C1715; --idle: #A9B6BF; --idle-bg: #262B2E;
+  --focus: #00EDED; color-scheme: dark }
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.55; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+h1, h2, h3 { font-weight: 400; text-wrap: balance; margin: 0; }
+
+.shell { display: flex; height: 100%; }
+.rail { width: 236px; flex-shrink: 0; background: var(--rail); color: var(--rail-ink); display: flex; flex-direction: column; overflow-y: auto; }
+.rail-brand { padding: 22px 18px 18px; border-bottom: 1px solid rgba(255,255,255,.08); display: grid; gap: 10px; }
+.rail-brand svg { width: 92px; height: auto; color: var(--rail-ink); }
+.rail-app { font-size: 15px; color: var(--neon); letter-spacing: .01em; }
+.rail-sub { font-size: 11px; color: var(--rail-muted); margin-top: -6px; }
+.rail-proj { padding: 14px 14px 6px; display: grid; gap: 6px; }
+.rail-label { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--rail-muted); padding: 0 4px; }
+.rail-proj select { width: 100%; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: var(--rail-ink); border-radius: 8px; padding: 8px 10px; }
+.rail-proj select option { color: #053057; background: #fff; }
+.nav { padding: 8px 10px; display: grid; gap: 2px; flex: 1; align-content: start; }
+.nav button { all: unset; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; color: var(--rail-muted); cursor: pointer; font-size: 13px; }
+.nav button:hover { background: var(--rail-hover); color: var(--rail-ink); }
+.nav button[aria-current="page"] { background: var(--rail-active); color: var(--neon); }
+.nav button:focus-visible { outline: 2px solid var(--neon); }
+.nav .count:empty { display: none; }
+.nav .count { font-family: var(--f-data); font-size: 11px; background: rgba(255,255,255,.1); padding: 1px 7px; border-radius: 10px; }
+.rail-foot { padding: 14px 18px 18px; border-top: 1px solid rgba(255,255,255,.08); font-size: 11px; color: var(--rail-muted); display: grid; gap: 4px; }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--rail-muted); margin-right: 6px; vertical-align: 1px; }
+.dot.on { background: var(--neon); }
+
+.canvas { flex: 1; overflow-y: auto; min-width: 0; }
+.hero { background: var(--washed); color: #F4F3F0; padding: 28px 36px 26px; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; right: -70px; top: -90px; width: 300px; height: 190px; border: 22px solid rgba(0,237,237,.10); border-radius: 50%; pointer-events: none; }
+.eyebrow { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--neon); }
+.hero h1 { font-size: 30px; line-height: 1.15; margin-top: 6px; }
+.hero p { margin: 8px 0 0; color: #B9CBD8; max-width: 70ch; font-size: 13.5px; }
+.wrap { padding: 26px 36px 64px; max-width: 1180px; display: grid; gap: 26px; }
+
+.sec-hd { display: flex; align-items: baseline; gap: 14px; }
+.sec-hd h2 { font-size: 18px; white-space: nowrap; }
+.sec-hd .line { flex: 1; height: 1px; background: var(--rule); }
+.sec-hd .aside { font-size: 12px; color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 16px 14px; display: grid; gap: 2px; }
+.stat b { font-weight: 400; font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--muted); }
+.stat.flag { border-color: var(--bad); }
+
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px 22px; min-width: 0; }
+.panel > h3 { font-size: 15px; margin-bottom: 4px; }
+.panel .lead { color: var(--muted); font-size: 13px; margin: 0 0 14px; max-width: 75ch; }
+.grid2 { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 18px; }
+
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-weight: 400; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); padding: 0 10px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.num, .mono { font-family: var(--f-data); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.who { display: grid; }
+.who small { color: var(--muted); font-size: 11.5px; }
+.clip { max-width: 46ch; color: var(--muted); }
+
+.chip { display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 20px; white-space: nowrap; background: var(--idle-bg); color: var(--idle); }
+.chip.ok { background: var(--ok-bg); color: var(--ok); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.bad { background: var(--bad-bg); color: var(--bad); }
+.chip.hi { background: var(--hilite); color: var(--hilite-ink); }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.btn:hover { border-color: var(--ink); }
+a.btn { text-decoration: none; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.1); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--bad); }
+.btn.sm { padding: 4px 10px; font-size: 12px; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.row.end { justify-content: flex-end; }
+
+.field { display: grid; gap: 6px; min-width: 0; }
+.field label, .lbl { font-size: 12px; color: var(--muted); }
+.field input, .field select, .field textarea, .inp { width: 100%; background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; padding: 9px 11px; }
+.field textarea { min-height: 92px; resize: vertical; line-height: 1.5; }
+.field input:focus, .field select:focus, .field textarea:focus, .inp:focus { outline: 2px solid var(--focus); outline-offset: 0; border-color: transparent; }
+.fgrid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+.fgrid.two { grid-template-columns: repeat(2, minmax(0,1fr)); }
+
+.q { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 4px 14px; padding: 18px 0; border-top: 1px solid var(--rule); }
+.q:first-of-type { border-top: 0; padding-top: 4px; }
+.q-n { width: 30px; height: 30px; border-radius: 50%; background: var(--hilite); color: var(--hilite-ink); display: grid; place-items: center; font-family: var(--f-data); font-size: 12px; }
+.q-t { font-size: 16px; padding-top: 3px; }
+.q-h { font-size: 12.5px; color: var(--muted); margin: 0 0 8px; }
+.q-body { grid-column: 2; display: grid; gap: 10px; }
+
+.items { display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: minmax(0,2fr) minmax(0,2fr) 150px auto 34px; gap: 8px; align-items: center; }
+.item.noplan { grid-template-columns: minmax(0,1fr) 170px 34px; }
+.item-hd { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.x { all: unset; cursor: pointer; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 6px; color: var(--muted); }
+.x:hover { background: var(--surface-2); color: var(--bad); }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.toggle input { width: 16px; height: 16px; accent-color: var(--washed); }
+
+.members { display: grid; gap: 8px; }
+.member { display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.5fr) 34px; gap: 8px; }
+
+.entry { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); padding: 16px 18px; display: grid; gap: 12px; }
+.entry-hd { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+.entry-hd .name { font-size: 15px; }
+.entry-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px 22px; }
+.entry-grid h4 { margin: 0 0 3px; font-weight: 400; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.entry-grid p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.day-hd { font-size: 13px; color: var(--muted); padding: 4px 2px 0; display: flex; justify-content: space-between; }
+.day { display: grid; gap: 10px; }
+
+.empty { border: 1px dashed var(--rule); border-radius: 12px; padding: 34px 26px; text-align: center; color: var(--muted); display: grid; gap: 12px; justify-items: center; }
+.empty h3 { color: var(--ink); font-size: 18px; }
+.empty p { margin: 0; max-width: 56ch; }
+
+.banner { border-radius: 10px; padding: 12px 16px; font-size: 13px; background: var(--hilite); color: var(--hilite-ink); }
+.banner.bad { background: var(--bad-bg); color: var(--bad); }
+.banner.warn { background: var(--warn-bg); color: var(--warn); }
+
+.rules { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+.rule { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px; display: grid; gap: 8px; align-content: start; }
+.rule .when { font-family: var(--f-data); font-size: 12px; color: var(--muted); }
+.rule h3 { font-size: 16px; }
+.rule p { margin: 0; font-size: 13px; color: var(--muted); }
+
+.map { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 10px; }
+.toast { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--washed); color: #F4F3F0; border-left: 3px solid var(--neon); padding: 12px 16px; border-radius: 8px; font-size: 13px; max-width: 360px; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+.confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--bad-bg); color: var(--bad); padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+
+@media (max-width: 960px) {
+  .stats, .rules { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid2, .entry-grid { grid-template-columns: minmax(0,1fr); }
+  .map { grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+@media (max-width: 760px) {
+  .shell { flex-direction: column; height: auto; }
+  .rail { width: 100%; }
+  .rail-brand { grid-template-columns: auto 1fr; align-items: center; padding: 14px 16px; }
+  .rail-sub { display: none; }
+  .nav { grid-auto-flow: column; overflow-x: auto; padding: 6px 12px 10px; }
+  .nav button { white-space: nowrap; }
+  .rail-foot { display: none; }
+  .hero { padding: 22px 16px; }
+  .hero h1 { font-size: 24px; }
+  .wrap { padding: 20px 16px 48px; }
+  .fgrid, .fgrid.two { grid-template-columns: minmax(0,1fr); }
+  .item { grid-template-columns: minmax(0,1fr) 34px; }
+  .item > *:nth-child(2), .item > *:nth-child(3), .item > *:nth-child(4) { grid-column: 1; }
+  .item .x { grid-row: 1; grid-column: 2; }
+  .item-hd { display: none; }
+  .member { grid-template-columns: minmax(0,1fr) 34px; }
+  .member > *:nth-child(2), .member > *:nth-child(3) { grid-column: 1; }
+  .member .x { grid-row: 1; grid-column: 2; }
+  .stats, .rules { grid-template-columns: minmax(0,1fr); }
+  .map { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (prefers-reduced-motion: no-preference) { .toast { animation: rise .25s ease-out; } @keyframes rise { from { transform: translateY(8px); opacity: .4; } } }
+</style>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="rail-brand">
+      <span aria-label="Blend360"><svg role="img" aria-hidden="true" width="572" height="110" viewBox="0 0 572 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 90.2812V25.1138H48.9904C64.5239 25.1138 70.3146 32.0074 70.3146 41.3827C70.3146 48.552 66.2703 53.883 59.2848 56.4566C67.4652 58.3869 74.0831 62.9826 74.0831 72.5417C74.0831 83.2957 67.1895 90.2812 53.1265 90.2812H0ZM12.3165 81.0897H49.2661C56.895 81.0897 61.307 78.1485 61.307 71.163C61.307 63.626 55.4244 61.42 49.2661 61.42H12.3165V81.0897ZM12.3165 53.5154H45.5896C52.2074 53.5154 58.0899 51.2175 58.0899 43.7725C58.0899 37.1546 53.6781 34.3053 45.5896 34.3053H12.3165V53.5154Z" fill="currentColor"/>
+<path d="M79.532 90.2812V16.7496H91.6647V90.2812H79.532Z" fill="currentColor"/>
+<path d="M136.308 92.1195C112.778 92.1195 98.4392 81.3655 98.4392 63.1664C98.4392 44.9673 113.054 34.1214 135.665 34.1214C158.459 34.1214 172.338 45.335 172.338 67.5783H111.583C113.421 77.2293 122.245 82.3765 136.676 82.3765C148.533 82.3765 156.529 78.7 158.919 72.4498H171.511C168.202 84.7663 156.161 92.1195 136.308 92.1195ZM111.767 58.1111H159.195C156.989 48.1844 148.9 43.7725 135.756 43.7725C122.521 43.7725 113.973 48.3682 111.767 58.1111Z" fill="currentColor"/>
+<path d="M178.454 90.2812V35.9597H191.322V47.7248C198.308 38.9929 209.062 34.1214 223.033 34.1214C240.497 34.1214 251.159 41.1988 251.159 62.6149V90.2812H238.291V66.9349C238.291 50.9418 232.041 44.8754 217.242 44.8754C201.893 44.8754 191.322 53.2396 191.322 67.3945V90.2812H178.454Z" fill="currentColor"/>
+<path d="M320.105 90.2812V78.8838C314.499 87.248 304.02 92.2114 290.969 92.2114C270.747 92.2114 257.696 80.814 257.696 63.2583C257.696 45.7027 270.747 34.2133 290.969 34.2133C304.02 34.2133 314.499 39.1767 320.105 47.6329V16.7496H332.146V90.2812H320.105ZM271.023 63.2583C271.023 74.2881 280.123 81.4574 294.829 81.4574C310.546 81.4574 320.105 74.2881 320.105 63.2583C320.105 52.1367 310.546 44.9673 294.829 44.9673C280.123 44.9673 271.023 52.1367 271.023 63.2583Z" fill="currentColor"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M376.722 38.4242L377.454 70.7401V70.7951C377.454 73.576 378.919 76.7861 382.791 80.2684C386.662 83.7491 392.536 87.1069 400.208 90.0265C415.519 95.8529 436.999 99.5601 460.963 99.5601C484.928 99.5601 506.408 95.8567 521.719 90.0323C529.391 87.1137 535.265 83.7566 539.135 80.2754C543.007 76.7933 544.472 73.5811 544.472 70.7951C544.472 68.009 543.007 64.7968 539.135 61.3147C538.756 60.9739 538.358 60.6342 537.941 60.2961C534.003 62.7129 529.451 64.8784 524.446 66.7824C507.773 73.125 485.068 76.9459 460.231 76.9459C443.554 76.9459 431.367 76.1547 419.478 73.4771C407.648 70.8127 396.353 66.3344 381.4 59.2515C380.589 58.9098 379.133 58.0421 378.581 56.0819C377.991 53.9872 378.979 52.4259 379.221 52.0649C379.568 51.5469 379.935 51.2187 380.073 51.0982C380.252 50.9428 380.407 50.8306 380.499 50.7664C380.797 50.5593 381.071 50.4206 381.139 50.3859L381.145 50.3826C381.354 50.2763 381.579 50.1759 381.755 50.0995C382.14 49.9318 382.672 49.7138 383.317 49.4595C384.62 48.9457 386.509 48.2335 388.871 47.3912C393.597 45.7056 400.277 43.4781 408.031 41.2554C423.443 36.838 443.498 32.3218 460.963 32.3218C485.8 32.3218 508.505 36.1427 525.178 42.4853C529.828 44.2539 534.086 46.2481 537.824 48.4598C538.022 48.2912 538.215 48.1223 538.403 47.953C542.274 44.4709 543.74 41.2588 543.74 38.4727C543.74 35.6866 542.274 32.4744 538.403 28.9923C534.532 25.5112 528.659 22.154 520.986 19.2354C505.675 13.411 484.196 9.70764 460.231 9.70764C436.266 9.70764 414.786 13.411 399.475 19.2354C391.803 22.154 385.929 25.5112 382.059 28.9923C378.21 32.4543 376.739 35.6494 376.722 38.4242ZM545.849 54.29C550.405 49.8898 553.46 44.5614 553.46 38.4727C553.46 31.9735 549.98 26.3406 544.907 21.7781C539.833 17.2147 532.765 13.3277 524.446 10.1629C507.773 3.82034 485.068 -0.000579834 460.231 -0.000579834C435.394 -0.000579834 412.689 3.82034 396.016 10.1629C387.696 13.3277 380.628 17.2147 375.555 21.7781C370.482 26.3406 367.002 31.9735 367.002 38.4727V38.5276L367.734 70.8542C367.756 77.3256 371.231 82.9361 376.287 87.4831C381.361 92.0455 388.428 95.9328 396.748 99.0986C413.421 105.443 436.126 109.268 460.963 109.268C485.8 109.268 508.505 105.447 525.178 99.1048C533.498 95.94 540.566 92.053 545.639 87.4896C550.712 82.9271 554.192 77.2943 554.192 70.7951C554.192 64.3856 550.807 58.8186 545.849 54.29ZM528.462 54.4532C526.399 53.4507 524.149 52.4823 521.719 51.5578C506.408 45.7334 484.928 42.03 460.963 42.03C444.88 42.03 425.871 46.2419 410.712 50.5869C405.078 52.202 400.03 53.8193 395.935 55.2125C405.59 59.4146 413.531 62.1857 421.616 64.0067C432.468 66.4508 443.821 67.2377 460.231 67.2377C484.196 67.2377 505.675 63.5343 520.986 57.71C523.707 56.6749 526.202 55.5846 528.462 54.4532Z" fill="currentColor"/>
+<path d="M552.196 12.7752V1.42888H547.944V-0.000579834H558.057V1.42888H553.805V12.7752H552.196Z" fill="currentColor"/>
+<path d="M558.983 12.7752V-0.000579834H561.181L565.184 10.6132H565.219L569.222 -0.000579834H571.42V12.7752H569.811V2.26869H569.776L565.916 12.7752H564.487L560.627 2.26869H560.591V12.7752H558.983Z" fill="currentColor"/>
+</svg></span>
+      <div class="rail-app">Daily Update Hub</div>
+      <div class="rail-sub">Project stand-ups, captured daily</div>
+    </div>
+    <div class="rail-proj">
+      <label class="rail-label" for="projSel">Project</label>
+      <select id="projSel"><option value="">Loading projects…</option></select>
+    </div>
+    <nav class="nav" id="nav" aria-label="Sections">
+      <button data-view="today">Today <span class="count" id="cToday"></span></button>
+      <button data-view="submit">Submit update</button>
+      <button data-view="log">Update log <span class="count" id="cLog"></span></button>
+      <button data-view="plan">Plan vs. actual</button>
+      <button data-view="alerts">Alerts</button>
+      <button data-view="setup">Project setup</button>
+    </nav>
+    <div class="rail-foot">
+      <div id="footWho">Signed in as …</div>
+      <div><span class="dot" id="dbDot"></span><span id="dbState">Connecting to shared data</span></div>
+    </div>
+  </aside>
+  <main class="canvas" id="canvas">
+    <header class="hero" id="hero"></header>
+    <div class="wrap" id="main"></div>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function () {
+'use strict';
+const APP_NAME = 'Daily Update Hub';
+// ===================== Blend Share setup =====================
+// Paste the Firebase web app config here (Firebase console → Project settings → Your apps → Web app).
+// Left empty, the file runs in preview mode and saves only in the current browser.
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyAXs9njH3W5I9KlR0-AsFXLkkf3y915sP4',
+  authDomain: 'blend-daily-update-hub.firebaseapp.com',
+  projectId: 'blend-daily-update-hub',
+  storageBucket: 'blend-daily-update-hub.firebasestorage.app',
+  messagingSenderId: '854886622141',
+  appId: '1:854886622141:web:a1e35e0d53308bd922e8d4'
+};
+const PLAN_ENABLED = false;        // project-plan import and plan-vs-actual; switched off for now
+const FIRESTORE_PREFIX = 'duh_';   // collections: duh_projects, duh_updates, duh_plans, duh_outbox
+const APP_LINK = '';               // where teammates open the app (e.g. the Blend Share folder link); used in emails
+const CLAUDE_LINK = 'https://claude.ai/artifact/HmxnSBvj8EdD47zFYhZP6d';
+// =============================================================
+const QUESTIONS = [
+  { key: 'working', t: 'Currently working on', h: 'What has your focus today? Name the workstream or ticket.' },
+  { key: 'progress', t: 'Progress since last update', h: 'What moved forward since your last entry: finished, shipped, decided.' },
+  { key: 'blockers', t: 'Blockers / challenges & help sought', h: 'Anything slowing you down, and who or what would unblock it.' },
+  { key: 'items', t: 'Expected delivery time by item', h: 'One row per deliverable, with the date you expect to deliver it.' }
+];
+const TIMEZONES = [['America/New_York','Eastern (ET)'],['America/Chicago','Central (CT)'],['America/Denver','Mountain (MT)'],['America/Los_Angeles','Pacific (PT)'],['Europe/London','London (UK)'],['Asia/Kolkata','India (IST)']];
+const NOT_RUN = new Set(['server_not_connected','not_in_manifest','needs_reauth','selection_required','blocked_by_policy','approval_required','not_granted','capability_disabled','capability_removed','consent_required','bad_request','transform_error','server_not_found']);
+
+const S = { db: null, user: null, mcp: null, me: { id: null, email: null, name: '' }, canWrite: null,
+  projects: [], pid: null, updates: [], plan: null, outbox: [], view: 'today',
+  unsub: [], dbReady: false, draftItems: null, logFilter: { member: '', q: '', from: '', to: '' },
+  setupDraft: null, importPreview: null, confirmDelete: false, editDate: null, editMember: null };
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+// ---------- dates ----------
+function tzOf(p) { return (p && p.timezone) || 'America/New_York'; }
+function todayIn(tz) { return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function hourIn(tz) { return Number(new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', hourCycle: 'h23' }).format(new Date())); }
+function dayDiff(a, b) { return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 864e5); }
+function addDays(d, n) { const t = new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5); return t.toISOString().slice(0, 10); }
+function isWeekend(d) { const w = new Date(d + 'T12:00:00Z').getUTCDay(); return w === 0 || w === 6; }
+function fmtDay(d) { if (!d) return '—'; return new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }); }
+function fmtShort(d) { if (!d) return '—'; return new Date(d + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }); }
+function fmtTime(iso, tz) { if (!iso) return ''; try { return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz }); } catch (e) { return ''; } }
+const MON = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
+function pad(n) { return String(n).padStart(2, '0'); }
+function yr(y) { y = Number(y); return y < 100 ? 2000 + y : y; }
+function parseDate(v) {
+  if (v == null || v === '') return '';
+  if (v instanceof Date && !isNaN(v)) return v.getFullYear() + '-' + pad(v.getMonth() + 1) + '-' + pad(v.getDate());
+  if (typeof v === 'number') { if (v > 20000 && v < 80000) return new Date(Date.UTC(1899, 11, 30) + v * 864e5).toISOString().slice(0, 10); return ''; }
+  const s = String(v).trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return m[1] + '-' + pad(m[2]) + '-' + pad(m[3]);
+  m = s.match(/^(\d{1,2})[\/\-\s]([A-Za-z]{3})[A-Za-z]*[\/\-\s,]+(\d{2,4})/); if (m && MON[m[2].toLowerCase()]) return yr(m[3]) + '-' + pad(MON[m[2].toLowerCase()]) + '-' + pad(m[1]);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if (m) return yr(m[3]) + '-' + pad(m[1]) + '-' + pad(m[2]);
+  const t = Date.parse(s); if (!isNaN(t)) { const d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  return '';
+}
+
+// ---------- derived ----------
+function proj() { return S.projects.find(p => p.id === S.pid) || null; }
+function members(p) { return (p && p.members) || []; }
+function updatesFor(date) { return S.updates.filter(u => u.date === date); }
+function taskById(id) { return S.plan && S.plan.tasks ? S.plan.tasks.find(t => t.id === id) : null; }
+function isDone(status) { return /complete|done|closed|resolved|cancel/i.test(status || ''); }
+function variance(item) {
+  const t = item.taskId ? taskById(item.taskId) : null;
+  if (!item.eta) return { cls: '', label: 'No date' };
+  if (!t || !t.end) return { cls: 'hi', label: 'Not linked' };
+  const d = dayDiff(t.end, item.eta);
+  if (d <= 0) return { cls: 'ok', label: d === 0 ? 'On plan date' : Math.abs(d) + 'd ahead', days: d };
+  if (d <= 3) return { cls: 'warn', label: d + 'd behind plan', days: d };
+  return { cls: 'bad', label: d + 'd behind plan', days: d };
+}
+function latestByMember() {
+  const m = {};
+  for (const u of S.updates) if (!m[u.memberId] || u.date > m[u.memberId].date) m[u.memberId] = u;
+  return m;
+}
+function latestEtaByTask() {
+  const r = {};
+  const sorted = S.updates.slice().sort((a, b) => a.date < b.date ? -1 : 1);
+  for (const u of sorted) for (const it of (u.items || [])) if (it.taskId) r[it.taskId] = { eta: it.eta, date: u.date, who: u.memberName, item: it.name };
+  return r;
+}
+function memberStatus(m, p) {
+  const tz = tzOf(p), today = todayIn(tz);
+  const u = S.updates.find(x => x.date === today && x.memberId === m.mid);
+  if (u) return { cls: 'ok', label: 'Submitted', u };
+  if (isWeekend(today)) return { cls: '', label: 'Weekend' };
+  if (hourIn(tz) >= 12) return { cls: 'bad', label: 'Missing' };
+  return { cls: 'warn', label: 'Pending' };
+}
+
+// ---------- ui helpers ----------
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4200); }
+function hero(eyebrow, title, sub) { $('#hero').innerHTML = `<div class="eyebrow">${esc(eyebrow)}</div><h1>${esc(title)}</h1>${sub ? `<p>${sub}</p>` : ''}`; }
+function secHd(title, aside) { return `<div class="sec-hd"><h2>${esc(title)}</h2><div class="line"></div>${aside ? `<span class="aside">${aside}</span>` : ''}</div>`; }
+function emptyProject() {
+  return `<div class="empty"><h3>Set up your first project</h3><p>Add the delivery lead and team members with their roles and email addresses. Once a project exists, each person answers the four daily questions here and everyone can see the history.</p><button class="btn primary" data-go="setup">Open project setup</button></div>`;
+}
+function roBanner() { return S.canWrite === false ? `<div class="banner warn">You have view-only access to this app. Ask the owner to share it with you as a Contributor so you can submit updates.</div>` : ''; }
+
+// ---------- storage backends ----------
+let DB = null;
+function wrapDb(raw, prefix) { return { collection: n => raw.collection(prefix + n), doc: p => raw.doc(prefix + p) }; }
+function makeLocalDb() {
+  const KEY = 'duh.localdb'; let data = {};
+  try { data = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { data = {}; }
+  const subs = new Set();
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} subs.forEach(f => f()); };
+  const clone = v => JSON.parse(JSON.stringify(v));
+  const snapDoc = (c, id) => { const v = data[c] && data[c][id]; return { id, exists: !!v, data: () => (v ? clone(v) : undefined) }; };
+  function query(c, filters, lim) {
+    const run = () => { const docs = Object.keys(data[c] || {}).filter(id => filters.every(([f, v]) => data[c][id][f] === v)).slice(0, lim || 1e9).map(id => snapDoc(c, id)); return { docs, size: docs.length, empty: !docs.length }; };
+    return {
+      where(f, op, v) { return query(c, filters.concat([[f, v]]), lim); },
+      orderBy() { return this; }, limit(n) { return query(c, filters, n); },
+      async get() { return run(); },
+      onSnapshot(fn) { const f = () => fn(run()); subs.add(f); setTimeout(f, 0); return () => subs.delete(f); }
+    };
+  }
+  function doc(path) {
+    const i = path.lastIndexOf('/'), c = path.slice(0, i), id = path.slice(i + 1);
+    return {
+      id,
+      async get() { return snapDoc(c, id); },
+      async set(v) { (data[c] = data[c] || {})[id] = clone(v); save(); },
+      async update(v) { if (!data[c] || !data[c][id]) throw { code: 'invalid_argument' }; Object.assign(data[c][id], clone(v)); save(); },
+      async delete() { if (data[c]) { delete data[c][id]; save(); } },
+      onSnapshot(fn) { const f = () => fn(snapDoc(c, id)); subs.add(f); setTimeout(f, 0); return () => subs.delete(f); }
+    };
+  }
+  return { collection(c) { const q = query(c, [], 0); q.doc = id => doc(c + '/' + (id || uid())); q.add = async v => { const d = doc(c + '/' + uid()); await d.set(v); return d; }; return q; }, doc };
+}
+function loadScript(src) { return new Promise((res, rej) => { const el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = () => rej(new Error('Could not load ' + src)); document.head.appendChild(el); }); }
+
+// ---------- email drafts (the sender reviews and hits Send) ----------
+function appLink() { return S.mode === 'claude' ? CLAUDE_LINK : APP_LINK; }
+function outlookUrl(d) {
+  const q = [];
+  if (d.to && d.to.length) q.push('to=' + encodeURIComponent(d.to.join(';')));
+  if (d.cc && d.cc.length) q.push('cc=' + encodeURIComponent(d.cc.join(';')));
+  if (d.bcc && d.bcc.length) q.push('bcc=' + encodeURIComponent(d.bcc.join(';')));
+  q.push('subject=' + encodeURIComponent(d.subject)); q.push('body=' + encodeURIComponent(d.body));
+  return 'https://outlook.office.com/mail/deeplink/compose?' + q.join('&');
+}
+function mailtoUrl(d) {
+  const q = [];
+  if (d.cc && d.cc.length) q.push('cc=' + encodeURIComponent(d.cc.join(',')));
+  if (d.bcc && d.bcc.length) q.push('bcc=' + encodeURIComponent(d.bcc.join(',')));
+  q.push('subject=' + encodeURIComponent(d.subject)); q.push('body=' + encodeURIComponent(d.body));
+  return 'mailto:' + (d.to || []).map(encodeURIComponent).join(',') + '?' + q.join('&');
+}
+function firstName(n) { return String(n || '').trim().split(/\s+/)[0] || 'there'; }
+function leadDraft(p, u, edited) {
+  const items = (u.items || []).filter(it => it.name || it.eta).map(it => { const v = variance(it); return `- ${it.name || 'Item'}: expected ${fmtShort(it.eta)}${PLAN_ENABLED && it.planEnd ? ` (plan ${fmtShort(it.planEnd)}, ${v.label})` : ''}`; }).join('\n');
+  const link = appLink();
+  const body = `Hi ${firstName(p.lead.name)},\n\n${u.memberName} (${u.memberRole || 'team member'}) ${edited ? 'edited' : 'submitted'} the daily update for ${p.name} on ${fmtDay(u.date)}.\n\nCURRENTLY WORKING ON\n${u.working}\n\nPROGRESS SINCE LAST UPDATE\n${u.progress || '—'}\n\nBLOCKERS / CHALLENGES & HELP SOUGHT${u.helpNeeded ? ' (HELP REQUESTED)' : ''}\n${u.blockers || 'None'}\n\nEXPECTED DELIVERY BY ITEM\n${items || '—'}\n${link ? '\nFull update log: ' + link + '\n' : ''}`;
+  return { kind: 'lead_update', title: `Let ${firstName(p.lead.name)} know`, desc: `Your update is saved. Send this email so ${p.lead.name} sees it now.`, to: [p.lead.email], cc: [], bcc: [], subject: `${u.helpNeeded ? '[Help needed] ' : ''}${p.name}: ${u.memberName}, daily update ${fmtShort(u.date)}`, body: body.slice(0, 6000) };
+}
+function morningDraft(p) {
+  const today = todayIn(tzOf(p)), link = appLink();
+  const to = members(p).map(m => m.email).filter(e => e && e.toLowerCase() !== (p.lead.email || '').toLowerCase());
+  const body = `Hi team,\n\nPlease enter today's update for ${p.name} by 12:00 PM.\n\n1. Currently working on\n2. Progress since last update\n3. Blockers / challenges & help sought\n4. Expected delivery time by item\n${link ? '\nOpen the Daily Update Hub: ' + link + '\n' : ''}\nThanks,\n${firstName(p.lead.name)}`;
+  return { kind: 'morning', date: today, title: 'Morning reminder', desc: `Goes to ${to.length} team member${to.length === 1 ? '' : 's'}.`, to, cc: [], bcc: [], subject: `[${p.name}] Daily update due today, ${fmtDay(today)}`, body };
+}
+function missingMembers(p) { const today = todayIn(tzOf(p)); return members(p).filter(m => !S.updates.some(u => u.date === today && u.memberId === m.mid)); }
+function nudgeDraft(p) {
+  const today = todayIn(tzOf(p)), miss = missingMembers(p), link = appLink();
+  const body = `Hi ${miss.map(m => firstName(m.name)).join(', ')},\n\nYour daily update for ${p.name} (${fmtDay(today)}) hasn't been entered yet. It takes about two minutes:\n\n1. Currently working on\n2. Progress since last update\n3. Blockers / challenges & help sought\n4. Expected delivery time by item\n${link ? '\nOpen the Daily Update Hub: ' + link + '\n' : ''}\nThanks,\n${firstName(p.lead.name)}`;
+  return { kind: 'midday', date: today, title: 'Midday nudge', desc: `Goes to the ${miss.length} people who haven't submitted, with ${p.lead.name} copied.`, to: miss.map(m => m.email), cc: [p.lead.email], bcc: [], subject: `[${p.name}] Reminder: today's update is still missing`, body };
+}
+function draftedToday(p, kind) { const today = todayIn(tzOf(p)); return S.outbox.some(o => o.kind === kind && o.date === today); }
+function draftCard() {
+  const d = S.draft; if (!d) return '';
+  const line = (l, a) => a && a.length ? `<div><span class="lbl">${l}</span> ${esc(a.join('; '))}</div>` : '';
+  return `<section class="panel draft" style="display:grid;gap:12px;border-color:var(--accent)">
+    <div class="row" style="justify-content:space-between"><h3 style="font-size:16px">${esc(d.title)}</h3><button class="btn sm ghost" type="button" data-draftclose="1">Close</button></div>
+    <p class="lead" style="margin:0">${esc(d.desc)} The email opens as a draft in Outlook: check it, then hit Send.</p>
+    <div style="display:grid;gap:2px;font-size:13px">${line('To', d.to)}${line('Cc', d.cc)}${line('Bcc', d.bcc)}<div><span class="lbl">Subject</span> ${esc(d.subject)}</div></div>
+    <pre id="draftBody" style="margin:0;white-space:pre-wrap;font:inherit;font-size:13px;background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:12px;max-height:220px;overflow:auto">${esc(d.body)}</pre>
+    <div class="row"><a class="btn primary" href="${esc(outlookUrl(d))}" target="_blank" rel="noopener" data-draftopen="web">Open draft in Outlook</a><a class="btn" href="${esc(mailtoUrl(d))}" data-draftopen="desktop">Open in desktop mail app</a><button class="btn ghost" type="button" data-draftcopy="1">Copy email text</button></div>
+  </section>`;
+}
+async function logDraft() {
+  const d = S.draft, p = proj(); if (!d || !p || d.logged) return;
+  d.logged = true;
+  try { await DB.collection('outbox').add({ projectId: p.id, kind: d.kind, date: d.date || todayIn(tzOf(p)), to: d.to.concat(d.cc || []), subject: d.subject, status: 'drafted', createdAt: new Date().toISOString() }); } catch (e) { /* log is best-effort */ }
+}
+
+// ---------- render ----------
+function render() {
+  document.querySelectorAll('#nav button').forEach(b => b.setAttribute('aria-current', b.dataset.view === S.view ? 'page' : 'false'));
+  renderProjSel();
+  const p = proj();
+  const tz = tzOf(p), today = todayIn(tz);
+  $('#cToday').textContent = p ? `${updatesFor(today).length}/${members(p).length}` : '';
+  $('#cLog').textContent = p ? S.updates.length : '';
+  const v = S.view;
+  const main = $('#main');
+  if (!S.dbReady && v !== 'setup') { hero('Daily Update Hub', 'Loading shared data', 'Fetching projects and updates for your team.'); main.innerHTML = `<div class="empty"><p>Connecting…</p></div>`; return; }
+  if (v === 'today') viewToday(main, p);
+  else if (v === 'submit') viewSubmit(main, p);
+  else if (v === 'log') viewLog(main, p);
+  else if (v === 'plan') viewPlan(main, p);
+  else if (v === 'alerts') viewAlerts(main, p);
+  else if (v === 'setup') viewSetup(main, p);
+  if (S.draft) main.insertAdjacentHTML('afterbegin', draftCard());
+  if (S.mode === 'local') main.insertAdjacentHTML('afterbegin', `<div class="banner warn"><b style="font-weight:400">Preview mode.</b> Entries are saved in this browser only. Add the Firebase settings to this file so the whole team shares one log.</div>`);
+}
+function renderProjSel() {
+  const sel = $('#projSel');
+  const opts = S.projects.length ? S.projects.map(p => `<option value="${esc(p.id)}"${p.id === S.pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('') : `<option value="">No projects yet</option>`;
+  const html = opts + `<option value="__new">+ New project…</option>`;
+  if (sel.innerHTML !== html) sel.innerHTML = html;
+  sel.value = S.pid || (S.view === 'setup' ? '__new' : '');
+}
+
+function viewToday(main, p) {
+  if (!p) { hero('Daily Update Hub', 'No project selected', 'Create a project to start capturing daily updates.'); main.innerHTML = emptyProject(); return; }
+  const tz = tzOf(p), today = todayIn(tz), ms = members(p);
+  const todays = updatesFor(today);
+  const help = todays.filter(u => u.helpNeeded || (u.blockers || '').trim());
+  const latest = latestByMember();
+  let behind = 0;
+  Object.values(latest).forEach(u => (u.items || []).forEach(it => { const v = variance(it); if (v.days > 0) behind++; }));
+  const tasks = (S.plan && S.plan.tasks) || [];
+  const horizon = addDays(today, 7);
+  const watch = tasks.filter(t => t.end && !isDone(t.status) && t.end <= horizon).sort((a, b) => a.end < b.end ? -1 : 1);
+  const overdue = watch.filter(t => t.end < today).length;
+  const dueItems = [];
+  Object.values(latest).forEach(u => (u.items || []).forEach(it => { if (it.eta && it.eta <= horizon) dueItems.push({ ...it, who: u.memberName, from: u.date }); }));
+  dueItems.sort((a, b) => a.eta < b.eta ? -1 : 1);
+  const pastDue = dueItems.filter(it => it.eta < today).length;
+  hero(`${p.client ? p.client + ' · ' : ''}${fmtDay(today)}`, p.name, `Delivery lead <b style="color:#fff;font-weight:400">${esc(p.lead && p.lead.name)}</b> · ${ms.length} team member${ms.length === 1 ? '' : 's'} ${PLAN_ENABLED ? ' · ' + (S.plan ? `Plan: ${esc(S.plan.sourceName || 'imported')} (${tasks.length} tasks)` : 'No project plan connected yet') : ''}`);
+
+  const rows = ms.map(m => {
+    const st = memberStatus(m, p);
+    return `<tr><td><div class="who">${esc(m.name)}<small>${esc(m.role)}</small></div></td>
+      <td><span class="chip ${st.cls}">${st.label}</span></td>
+      <td class="num">${st.u ? esc(fmtTime(st.u.submittedAt, tz)) : '—'}</td>
+      <td class="clip">${st.u ? esc((st.u.working || '').slice(0, 140)) : ''}</td>
+      <td>${st.u ? `<button class="btn sm ghost" data-viewentry="${esc(st.u.id)}">Read</button>` : (st.cls !== '' ? `<button class="btn sm ghost" data-submitfor="${esc(m.mid)}">Enter</button>` : '')}</td></tr>`;
+  }).join('');
+
+  const blockers = help.length ? help.map(u => `<div class="entry"><div class="entry-hd"><span class="name">${esc(u.memberName)}</span>${u.helpNeeded ? '<span class="chip bad">Help requested</span>' : '<span class="chip warn">Blocker noted</span>'}</div><p style="margin:0;white-space:pre-wrap">${esc(u.blockers || '(no detail given)')}</p></div>`).join('') : `<p class="lead" style="margin:0">No blockers reported today.</p>`;
+
+  const etas = latestEtaByTask();
+  const watchRows = watch.slice(0, 12).map(t => {
+    const e = etas[t.id];
+    const lateChip = t.end < today ? '<span class="chip bad">Past plan date</span>' : `<span class="chip">${dayDiff(today, t.end)}d left</span>`;
+    let eChip = '<span class="chip warn">No update mentions it</span>';
+    if (e) { const v = variance({ eta: e.eta, taskId: t.id }); eChip = `<span class="chip ${v.cls}">${esc(v.label)}</span>`; }
+    return `<tr><td>${esc(t.name)}<div class="clip" style="font-size:11.5px">${esc(t.owner || 'Unassigned')}</div></td><td class="num">${fmtShort(t.end)}</td><td>${lateChip}</td><td>${eChip}</td></tr>`;
+  }).join('');
+
+  main.innerHTML = `
+    <div class="stats">
+      <div class="stat${todays.length < ms.length && hourIn(tz) >= 12 && !isWeekend(today) ? ' flag' : ''}"><b>${todays.length}<span style="font-size:18px;color:var(--muted)"> / ${ms.length}</span></b><span>Updates in today</span></div>
+      <div class="stat${help.length ? ' flag' : ''}"><b>${help.length}</b><span>Blockers or help requests today</span></div>
+      ${PLAN_ENABLED ? `<div class="stat${behind ? ' flag' : ''}"><b>${behind}</b><span>Delivery items behind plan</span></div>
+      <div class="stat${overdue ? ' flag' : ''}"><b>${watch.length}</b><span>Plan tasks due in 7 days${overdue ? ` · ${overdue} overdue` : ''}</span></div>`
+      : `<div class="stat"><b>${dueItems.length - pastDue}</b><span>Deliverables due in the next 7 days</span></div>
+      <div class="stat${pastDue ? ' flag' : ''}"><b>${pastDue}</b><span>Deliverables past their expected date</span></div>`}
+    </div>
+    ${reminderCue(p)}
+    <section>${secHd('Team check-in', `Midday cutoff 12:00 · ${esc((TIMEZONES.find(z => z[0] === tz) || [0, tz])[1])}`)}
+      <div class="row" style="margin-top:10px"><button class="btn sm" type="button" data-mkdraft="morning">Draft morning reminder</button><button class="btn sm" type="button" data-mkdraft="midday" ${missingMembers(p).length ? '' : 'disabled'}>Draft nudge to ${missingMembers(p).length} missing</button></div>
+      <div class="panel" style="margin-top:12px"><div class="tbl-wrap"><table><thead><tr><th>Team member</th><th>Status</th><th>Time</th><th>Working on</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="5">Add team members in Project setup.</td></tr>'}</tbody></table></div></div>
+    </section>
+    <div class="grid2">
+      <section style="display:grid;gap:12px;align-content:start">${secHd('Blockers & help sought')}${blockers}</section>
+      ${!PLAN_ENABLED ? `<section style="display:grid;gap:12px;align-content:start">${secHd('Deliverables due soon', 'From each person’s latest update')}
+        ${dueItems.length ? `<div class="panel"><div class="tbl-wrap"><table><thead><tr><th>Deliverable</th><th>Owner</th><th>Expected</th><th></th></tr></thead><tbody>${dueItems.slice(0, 12).map(it => `<tr><td>${esc(it.name || 'Item')}</td><td>${esc(it.who)}</td><td class="num">${fmtShort(it.eta)}</td><td>${it.eta < today ? '<span class="chip bad">Past due</span>' : it.eta === today ? '<span class="chip warn">Today</span>' : `<span class="chip">${dayDiff(today, it.eta)}d left</span>`}</td></tr>`).join('')}</tbody></table></div></div>`
+          : `<p class="lead" style="margin:0">No deliverables are due in the next seven days.</p>`}
+      </section>` : `<section style="display:grid;gap:12px;align-content:start">${secHd('Plan watch', S.plan ? 'Due within 7 days' : '')}
+        ${S.plan ? (watch.length ? `<div class="panel"><div class="tbl-wrap"><table><thead><tr><th>Plan task</th><th>Plan end</th><th>Timing</th><th>Latest ETA</th></tr></thead><tbody>${watchRows}</tbody></table></div></div>` : `<p class="lead" style="margin:0">Nothing open is due in the next seven days.</p>`)
+        : `<div class="empty" style="padding:22px"><p>Connect a Smartsheet or Jira plan to compare each day's deliverables against the timeline.</p><button class="btn" data-go="plan">Connect a plan</button></div>`}
+      </section>`}
+    </div>`;
+}
+
+function reminderCue(p) {
+  const tz = tzOf(p), today = todayIn(tz), h = hourIn(tz);
+  if (isWeekend(today) || S.draft) return '';
+  const miss = missingMembers(p).length;
+  if (h >= 12 && miss && !draftedToday(p, 'midday')) return `<div class="banner bad row" style="justify-content:space-between">${miss} update${miss === 1 ? ' is' : 's are'} still missing at midday. <button class="btn sm" type="button" data-mkdraft="midday">Draft the nudge</button></div>`;
+  if (h >= 7 && h < 12 && miss && !draftedToday(p, 'morning')) return `<div class="banner row" style="justify-content:space-between">Today's morning reminder hasn't gone out yet. <button class="btn sm" type="button" data-mkdraft="morning">Draft the reminder</button></div>`;
+  return '';
+}
+function viewSubmit(main, p) {
+  if (!p) { hero('Submit update', 'No project selected', ''); main.innerHTML = emptyProject(); return; }
+  const tz = tzOf(p), ms = members(p);
+  const date = S.editDate || todayIn(tz);
+  let mid = S.editMember;
+  if (!mid && S.me.email) { const hit = ms.find(m => (m.email || '').toLowerCase() === S.me.email.toLowerCase()); if (hit) mid = hit.mid; }
+  if (!mid && S.me.name) { const n = S.me.name.trim().toLowerCase(); const hit = ms.find(m => (m.name || '').trim().toLowerCase() === n); if (hit) mid = hit.mid; }
+  if (!mid && ms[0]) mid = '';
+  const existing = S.updates.find(u => u.date === date && u.memberId === mid);
+  const txt = S.draftText || existing || {};
+  const prev = S.updates.filter(u => u.memberId === mid && u.date < date).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+  if (!S.draftItems) S.draftItems = existing ? JSON.parse(JSON.stringify(existing.items || [])) : (prev ? (prev.items || []).filter(it => !(it.taskId && isDone((taskById(it.taskId) || {}).status))).map(it => ({ ...it })) : []);
+  if (!S.draftItems.length) S.draftItems.push({ name: '', taskId: '', eta: '' });
+  hero(`${p.name} · Daily update`, existing ? 'Edit your update' : 'Today’s update', `Four questions, about two minutes. Your delivery lead${p.lead && p.lead.name ? ', ' + esc(p.lead.name) + ',' : ''} is notified when you submit.`);
+  const tasks = (S.plan && S.plan.tasks) || [];
+  const taskOpts = `<option value="">— Not in plan —</option>` + tasks.filter(t => !isDone(t.status)).map(t => `<option value="${esc(t.id)}">${esc(t.name.slice(0, 90))}${t.end ? ' · due ' + fmtShort(t.end) : ''}</option>`).join('');
+  const itemsHtml = !PLAN_ENABLED ? S.draftItems.map((it, i) => `<div class="item noplan" data-i="${i}">
+      <input class="inp" id="it-name-${i}" data-f="name" value="${esc(it.name)}" placeholder="Deliverable" aria-label="Deliverable">
+      <input class="inp" type="date" id="it-eta-${i}" data-f="eta" value="${esc(it.eta)}" aria-label="Expected delivery">
+      <button class="x" type="button" data-rmitem="${i}" aria-label="Remove row">✕</button></div>`).join('') : S.draftItems.map((it, i) => {
+    const v = variance(it);
+    return `<div class="item" data-i="${i}">
+      <input class="inp" id="it-name-${i}" data-f="name" value="${esc(it.name)}" placeholder="Deliverable" aria-label="Deliverable">
+      <select class="inp" id="it-task-${i}" data-f="taskId" aria-label="Plan task">${taskOpts.replace(`value="${esc(it.taskId)}"`, `value="${esc(it.taskId)}" selected`)}</select>
+      <input class="inp" type="date" id="it-eta-${i}" data-f="eta" value="${esc(it.eta)}" aria-label="Expected delivery">
+      <span class="chip ${v.cls}">${esc(v.label)}</span>
+      <button class="x" type="button" data-rmitem="${i}" aria-label="Remove row">✕</button></div>`;
+  }).join('');
+  main.innerHTML = `${roBanner()}
+  <form class="panel" id="upForm" autocomplete="off">
+    <div class="fgrid">
+      <div class="field"><label for="upWho">Team member</label><select id="upWho"><option value="">Choose your name…</option>${ms.map(m => `<option value="${esc(m.mid)}"${m.mid === mid ? ' selected' : ''}>${esc(m.name)} · ${esc(m.role)}</option>`).join('')}</select></div>
+      <div class="field"><label for="upDate">Update for</label><input type="date" id="upDate" value="${esc(date)}" max="${esc(todayIn(tz))}"></div>
+      <div class="field"><span class="lbl">Last update</span><div style="padding:9px 0;color:var(--muted)">${prev ? esc(fmtDay(prev.date)) : 'None yet'}</div></div>
+    </div>
+    <div style="margin-top:18px">
+      ${QUESTIONS.map((q, i) => `<div class="q"><div class="q-n">${i + 1}</div><div class="q-t">${esc(q.t)}</div><div class="q-body"><p class="q-h">${esc(q.h)}</p>
+        ${q.key === 'items' ? `<div class="items">${PLAN_ENABLED ? '<div class="item item-hd"><span>Deliverable</span><span>Plan task</span><span>Expected delivery</span><span>vs. plan</span><span></span></div>' : '<div class="item noplan item-hd"><span>Deliverable</span><span>Expected delivery</span><span></span></div>'}${itemsHtml}</div><div><button type="button" class="btn sm" id="addItem">+ Add deliverable</button></div>`
+        : `<div class="field"><textarea id="q-${q.key}" aria-label="${esc(q.t)}" ${q.key === 'working' ? 'required' : ''} placeholder="${q.key === 'progress' && prev ? 'Last time you were working on: ' + esc((prev.working || '').slice(0, 120)) : ''}">${esc(txt[q.key] || '')}</textarea></div>${q.key === 'blockers' ? `<label class="toggle"><input type="checkbox" id="q-help" ${txt.helpNeeded ? 'checked' : ''}> I need help to get unblocked (flags this for the lead)</label>` : ''}`}
+      </div></div>`).join('')}
+    </div>
+    <div class="row end" style="margin-top:8px">
+      <label class="toggle" style="margin-right:auto"><input type="checkbox" id="notifyLead" checked> Draft an email to ${esc((p.lead && p.lead.name) || 'the delivery lead')} when I submit</label>
+      <button class="btn primary" type="submit" id="upSubmit">${existing ? 'Save changes' : 'Submit update'}</button>
+    </div>
+  </form>`;
+}
+
+function entryCard(u, tz) {
+  const items = (u.items || []).filter(it => it.name || it.eta);
+  return `<article class="entry" id="e-${esc(u.id)}">
+    <div class="entry-hd"><span class="name">${esc(u.memberName)} <small style="color:var(--muted)">${esc(u.memberRole || '')}</small></span>
+      <span class="row" style="gap:6px">${u.helpNeeded ? '<span class="chip bad">Help requested</span>' : ''}<span class="mono" style="color:var(--muted)">${esc(fmtTime(u.submittedAt, tz))}${u.editedAt ? ' · edited' : ''}</span><button class="btn sm ghost" type="button" data-editup="${esc(u.id)}">Edit</button><button class="btn sm ghost danger" type="button" data-delup="${esc(u.id)}">Delete</button></span></div>
+    ${S.confirmUpdate === u.id ? `<div class="confirm">Delete ${esc(u.memberName)}’s update for ${esc(fmtDay(u.date))}? This can’t be undone. <button class="btn sm danger" type="button" data-delupyes="${esc(u.id)}">Delete update</button><button class="btn sm" type="button" data-delupno="1">Keep</button></div>` : ''}
+    <div class="entry-grid">
+      <div><h4>Currently working on</h4><p>${esc(u.working || '—')}</p></div>
+      <div><h4>Progress since last update</h4><p>${esc(u.progress || '—')}</p></div>
+      <div><h4>Blockers / challenges & help sought</h4><p>${esc(u.blockers || 'None')}</p></div>
+      <div><h4>Expected delivery by item</h4>${items.length ? `<div style="display:grid;gap:6px">${items.map(it => { const v = variance(it); const t = it.taskId ? taskById(it.taskId) : null; return `<div class="row" style="gap:8px;justify-content:space-between"><span style="min-width:0;overflow-wrap:anywhere">${esc(it.name || (t && t.name) || 'Item')}</span><span class="row" style="gap:6px"><span class="mono">${fmtShort(it.eta)}</span>${PLAN_ENABLED || it.taskId ? `<span class="chip ${v.cls}">${esc(v.label)}</span>` : ''}</span></div>`; }).join('')}</div>` : '<p>—</p>'}</div>
+    </div></article>`;
+}
+
+function viewLog(main, p) {
+  if (!p) { hero('Update log', 'No project selected', ''); main.innerHTML = emptyProject(); return; }
+  const tz = tzOf(p), f = S.logFilter;
+  hero(`${p.name} · History`, 'Update log', 'Every update the team has entered, newest first. Everyone with access to this app sees the same log.');
+  let list = S.updates.slice();
+  if (f.member) list = list.filter(u => u.memberId === f.member);
+  if (f.from) list = list.filter(u => u.date >= f.from);
+  if (f.to) list = list.filter(u => u.date <= f.to);
+  if (f.q) { const q = f.q.toLowerCase(); list = list.filter(u => [u.working, u.progress, u.blockers, u.memberName, ...(u.items || []).map(i => i.name)].join(' ').toLowerCase().includes(q)); }
+  list.sort((a, b) => a.date === b.date ? (a.submittedAt < b.submittedAt ? 1 : -1) : (a.date < b.date ? 1 : -1));
+  const days = {};
+  list.forEach(u => { (days[u.date] = days[u.date] || []).push(u); });
+  const n = members(p).length;
+  main.innerHTML = `
+    <div class="panel"><div class="fgrid" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      <div class="field"><label for="fMember">Team member</label><select id="fMember"><option value="">Everyone</option>${members(p).map(m => `<option value="${esc(m.mid)}"${m.mid === f.member ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></div>
+      <div class="field"><label for="fFrom">From</label><input type="date" id="fFrom" value="${esc(f.from)}"></div>
+      <div class="field"><label for="fTo">To</label><input type="date" id="fTo" value="${esc(f.to)}"></div>
+      <div class="field"><label for="fQ">Search text</label><input id="fQ" value="${esc(f.q)}" placeholder="e.g. dbt, access, UAT"></div>
+    </div></div>
+    ${Object.keys(days).length ? Object.keys(days).map(d => `<section class="day"><div class="day-hd"><span>${esc(fmtDay(d))}</span><span>${days[d].length}${f.member ? '' : ' of ' + n} updates</span></div>${days[d].map(u => entryCard(u, tz)).join('')}</section>`).join('')
+      : `<div class="empty"><h3>${S.updates.length ? 'No updates match these filters' : 'No updates yet'}</h3><p>${S.updates.length ? 'Clear a filter to see more.' : 'Updates appear here as soon as team members submit them from the Submit update tab.'}</p>${S.updates.length ? '' : '<button class="btn primary" data-go="submit">Submit the first update</button>'}</div>`}`;
+}
+
+function viewPlan(main, p) {
+  if (!p) { hero('Plan vs. actual', 'No project selected', ''); main.innerHTML = emptyProject(); return; }
+  const tz = tzOf(p), today = todayIn(tz);
+  hero(`${p.name} · Timeline`, 'Plan vs. actual', 'Load the project plan from Smartsheet or Jira. Each update’s expected delivery dates are compared to the plan’s end dates.');
+  const plan = S.plan, tasks = (plan && plan.tasks) || [];
+  const etas = latestEtaByTask();
+  const pv = S.importPreview;
+  const mapFields = [['name', 'Task name'], ['owner', 'Owner / assignee'], ['start', 'Start date'], ['end', 'End / due date'], ['status', 'Status'], ['id', 'Key / ID']];
+  const preview = pv ? `<div class="panel" style="display:grid;gap:14px">
+      <h3>Check the column mapping · ${esc(pv.sourceName)}</h3>
+      <p class="lead" style="margin:0">${pv.rows.length} rows found. Adjust any column the importer guessed wrong, then save the plan.${pv.sampled ? ' <b>Smartsheet returned a sample of the sheet, not every row.</b> Filter the sheet or import an Excel export for the full plan.' : ''}</p>
+      <div class="map">${mapFields.map(([k, l]) => `<div class="field"><label for="map-${k}">${l}</label><select id="map-${k}" data-map="${k}"><option value="">—</option>${pv.headers.map((h, i) => `<option value="${i}"${pv.map[k] === i ? ' selected' : ''}>${esc(h)}</option>`).join('')}</select></div>`).join('')}</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Task</th><th>Owner</th><th>Start</th><th>End</th><th>Status</th></tr></thead><tbody>${previewTasks(pv).slice(0, 6).map(t => `<tr><td>${esc(t.name)}</td><td>${esc(t.owner)}</td><td class="num">${esc(t.start)}</td><td class="num">${esc(t.end)}</td><td>${esc(t.status)}</td></tr>`).join('')}</tbody></table></div>
+      <div class="row end"><button class="btn ghost" id="cancelImport">Cancel</button><button class="btn primary" id="saveImport">Save plan (${previewTasks(pv).length} tasks)</button></div></div>` : '';
+  const rows = tasks.slice().sort((a, b) => (a.end || '9') < (b.end || '9') ? -1 : 1).map(t => {
+    const e = etas[t.id];
+    let c = '<span class="chip">No update yet</span>';
+    if (isDone(t.status)) c = '<span class="chip ok">Done in plan</span>';
+    else if (e) { const v = variance({ eta: e.eta, taskId: t.id }); c = `<span class="chip ${v.cls}">${esc(v.label)}</span>`; }
+    else if (t.end && t.end < today) c = '<span class="chip bad">Past due, no update</span>';
+    return `<tr><td>${esc(t.name)}</td><td>${esc(t.owner || '—')}</td><td class="num">${fmtShort(t.start)}</td><td class="num">${fmtShort(t.end)}</td><td>${esc(t.status || '—')}</td><td class="num">${e ? fmtShort(e.eta) : '—'}</td><td>${c}</td></tr>`;
+  }).join('');
+  const mcpNote = S.mcp ? '' : '<p class="lead" style="margin:6px 0 0">Live Smartsheet sync isn’t available in this view. Use a file export instead.</p>';
+  main.innerHTML = `
+    <div class="grid2">
+      <div class="panel" style="display:grid;gap:10px;align-content:start"><h3>Sync from Smartsheet</h3>
+        <p class="lead" style="margin:0">Paste the sheet’s link. This reads it through your Smartsheet connection; columns like Task Name, Assigned To, Start Date, End Date and Status are matched automatically.</p>
+        <div class="field"><label for="ssUrl">Smartsheet link</label><input id="ssUrl" placeholder="https://app.smartsheet.com/sheets/…" value="${esc(plan && plan.source === 'smartsheet' ? plan.sourceUrl : '')}"></div>
+        <div class="row"><button class="btn primary" id="ssSync" ${S.mcp ? '' : 'disabled'}>${plan && plan.source === 'smartsheet' ? 'Re-sync sheet' : 'Load sheet'}</button><span id="ssMsg" class="lead" style="margin:0"></span></div>${mcpNote}
+      </div>
+      <div class="panel" style="display:grid;gap:10px;align-content:start"><h3>Import a Jira or Smartsheet export</h3>
+        <p class="lead" style="margin:0">Jira: Filters → Export → Export CSV (all fields). Smartsheet: File → Export to Microsoft Excel. Works with .csv and .xlsx files.</p>
+        <div class="field"><label for="planFile">Plan file</label><input type="file" id="planFile" accept=".csv,.xlsx,.xls"></div>
+      </div>
+    </div>
+    ${preview}
+    <section style="display:grid;gap:12px">${secHd('Timeline comparison', plan ? `${esc(plan.sourceName || '')} · loaded ${esc(fmtDay((plan.importedAt || '').slice(0, 10)))}` : '')}
+      ${tasks.length ? `<div class="panel"><div class="tbl-wrap"><table><thead><tr><th>Plan task</th><th>Owner</th><th>Start</th><th>Plan end</th><th>Plan status</th><th>Team ETA</th><th>Variance</th></tr></thead><tbody>${rows}</tbody></table></div></div>`
+        : `<div class="empty"><h3>No plan loaded</h3><p>Once a plan is loaded, team members can link each deliverable to a plan task and this table shows which tasks are slipping.</p></div>`}
+    </section>`;
+}
+function previewTasks(pv) {
+  const g = (r, k) => pv.map[k] === '' || pv.map[k] == null ? '' : r[pv.map[k]];
+  return pv.rows.map((r, i) => ({
+    id: String(g(r, 'id') || (pv.rowIds && pv.rowIds[i]) || 'n' + hash(String(g(r, 'name')) + '|' + i)).slice(0, 80),
+    name: String(g(r, 'name') || '').trim().slice(0, 200),
+    owner: String(g(r, 'owner') || '').trim().slice(0, 80),
+    start: parseDate(g(r, 'start')), end: parseDate(g(r, 'end')),
+    status: String(g(r, 'status') || '').trim().slice(0, 40)
+  })).filter(t => t.name).slice(0, 1200);
+}
+function hash(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+function guessMap(headers) {
+  const find = (re, not) => { const i = headers.findIndex(h => re.test(h) && !(not && not.test(h))); return i < 0 ? '' : i; };
+  return {
+    name: find(/^(task ?name|summary|task|name|title|deliverable|milestone)$/i) !== '' ? find(/^(task ?name|summary|task|name|title|deliverable|milestone)$/i) : find(/task|summary|name|title/i),
+    owner: find(/assign|owner|assignee|resource/i),
+    start: find(/start/i),
+    end: find(/^(end|finish|due)|end date|due date|finish|target/i),
+    status: find(/^status$/i) !== '' ? find(/^status$/i) : find(/status|state/i, /category/i),
+    id: find(/^(issue key|key|issue id|id|row id)$/i)
+  };
+}
+
+function viewAlerts(main, p) {
+  if (!p) { hero('Alerts', 'No project selected', ''); main.innerHTML = emptyProject(); return; }
+  hero(`${p.name} · Notifications`, 'Alerts', 'Each alert opens as a ready-to-send Outlook draft addressed to the right people. Review it and hit Send.');
+  const tzName = (TIMEZONES.find(z => z[0] === tzOf(p)) || [0, tzOf(p)])[1];
+  const miss = missingMembers(p).length;
+  const log = S.outbox.slice().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).slice(0, 60);
+  const kind = { lead_update: 'Update → lead', morning: 'Morning reminder', midday: 'Midday nudge' };
+  const chip = o => o.status === 'sent' ? '<span class="chip ok">Sent</span>' : o.status === 'drafted' ? '<span class="chip hi">Drafted</span>' : o.status === 'queued' ? '<span class="chip">Not sent</span>' : '<span class="chip">Unconfirmed</span>';
+  main.innerHTML = `
+    <div class="rules">
+      <div class="rule"><span class="when">Weekdays · morning · ${esc(tzName)}</span><h3>Morning reminder</h3><p>To every team member, listing the four questions and the noon deadline.${draftedToday(p, 'morning') ? ' Drafted today.' : ''}</p><div><button class="btn sm primary" type="button" data-mkdraft="morning">Draft reminder</button></div></div>
+      <div class="rule"><span class="when">Weekdays · 12:00 PM ${esc(tzName)}</span><h3>Midday nudge</h3><p>To anyone who hasn’t submitted, with ${esc((p.lead && p.lead.name) || 'the lead')} copied so they see who’s missing.</p><div><button class="btn sm primary" type="button" data-mkdraft="midday" ${miss ? '' : 'disabled'}>${miss ? `Draft nudge (${miss} missing)` : 'Everyone has submitted'}</button></div></div>
+      <div class="rule"><span class="when">On every submit</span><h3>Update alert to lead</h3><p>When someone submits, a draft to ${esc((p.lead && p.lead.name) || 'the lead')} with their full update opens for them to send.</p></div>
+    </div>
+    <section style="display:grid;gap:12px">${secHd('Alert log', 'Last 60')}
+      ${log.length ? `<div class="panel"><div class="tbl-wrap"><table><thead><tr><th>When</th><th>Alert</th><th>To</th><th>Subject</th><th>Status</th></tr></thead><tbody>${log.map(o => `<tr><td class="num">${esc((o.createdAt || '').slice(0, 16).replace('T', ' '))}</td><td>${esc(kind[o.kind] || o.kind)}</td><td class="clip">${esc((o.to || []).join(', '))}</td><td class="clip">${esc(o.subject)}</td><td>${chip(o)}</td></tr>`).join('')}</tbody></table></div></div>`
+        : `<div class="empty"><p>No alerts drafted for this project yet. Drafts you open are listed here.</p></div>`}
+    </section>`;
+}
+
+function projectList() {
+  if (!S.projects.length) return '';
+  const rows = S.projects.map(p => {
+    const asking = S.confirmDelete === p.id;
+    return `<tr><td>${esc(p.name)}<div class="clip" style="font-size:11.5px">${esc(p.client || '')}</div></td><td>${esc((p.lead && p.lead.name) || '—')}</td><td class="num">${members(p).length}</td>
+      <td style="text-align:right">${asking ? `<div class="confirm" style="justify-content:flex-end">Delete ${esc(p.name)} with all its updates, plan and alert history? This can’t be undone. <button class="btn sm danger" type="button" data-delyes="${esc(p.id)}">Delete</button><button class="btn sm" type="button" data-delno="1">Keep</button></div>`
+      : `<div class="row" style="justify-content:flex-end;gap:6px"><button class="btn sm ghost" type="button" data-edit="${esc(p.id)}">Edit</button><button class="btn sm ghost danger" type="button" data-delask="${esc(p.id)}">Delete</button></div>`}</td></tr>`;
+  }).join('');
+  return `<section style="display:grid;gap:12px">${secHd('All projects', S.projects.length + ' active')}<div class="panel"><div class="tbl-wrap"><table><thead><tr><th>Project</th><th>Delivery lead</th><th>Team</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></section>`;
+}
+function blankProject() { return { id: '', name: '', client: '', start: '', end: '', timezone: 'America/New_York', lead: { name: '', email: '', role: 'Delivery Lead' }, members: [{ mid: uid(), name: '', role: '', email: '' }], alerts: { morning: true, midday: true, lead: true } }; }
+function viewSetup(main, p) {
+  if (!S.setupDraft) S.setupDraft = p ? JSON.parse(JSON.stringify(p)) : blankProject();
+  const d = S.setupDraft, isNew = !d.id;
+  hero(isNew ? 'New project' : 'Project setup', isNew ? 'Set up a project' : d.name || 'Project setup', 'Name the delivery lead and the team. Everyone listed here receives the daily reminders and appears on the Today board.');
+  main.innerHTML = `${roBanner()}${projectList()}
+  <form class="panel" id="setupForm" autocomplete="off" style="display:grid;gap:22px">
+    <div style="display:grid;gap:12px"><h3>Project</h3>
+      <div class="fgrid">
+        <div class="field"><label for="sName">Project name</label><input id="sName" required value="${esc(d.name)}" placeholder="e.g. UDX Semantic Layer"></div>
+        <div class="field"><label for="sClient">Client</label><input id="sClient" value="${esc(d.client)}" placeholder="e.g. Universal"></div>
+        <div class="field"><label for="sTz">Time zone for reminders</label><select id="sTz">${TIMEZONES.map(z => `<option value="${z[0]}"${z[0] === d.timezone ? ' selected' : ''}>${z[1]}</option>`).join('')}</select></div>
+        <div class="field"><label for="sStart">Start date</label><input type="date" id="sStart" value="${esc(d.start)}"></div>
+        <div class="field"><label for="sEnd">End date</label><input type="date" id="sEnd" value="${esc(d.end)}"></div>
+      </div></div>
+    <div style="display:grid;gap:12px"><h3>Delivery lead</h3><p class="lead" style="margin:0">Receives an email for every update and the midday list of who hasn’t submitted.</p>
+      <div class="fgrid">
+        <div class="field"><label for="lName">Name</label><input id="lName" required value="${esc(d.lead.name)}"></div>
+        <div class="field"><label for="lRole">Role</label><input id="lRole" value="${esc(d.lead.role)}"></div>
+        <div class="field"><label for="lEmail">Email address</label><input id="lEmail" type="email" required value="${esc(d.lead.email)}" placeholder="name@blend360.com"></div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="leadIsMember" ${d.members.some(m => m.email && m.email.toLowerCase() === (d.lead.email || '').toLowerCase()) ? 'checked disabled' : ''}> The lead also submits daily updates (adds them to the team list)</label></div>
+    <div style="display:grid;gap:12px"><h3>Team members</h3>
+      <div class="members"><div class="member item-hd"><span>Name</span><span>Role</span><span>Email address</span><span></span></div>
+      ${d.members.map((m, i) => `<div class="member" data-mi="${i}"><input class="inp" id="m-name-${m.mid}" data-mf="name" value="${esc(m.name)}" placeholder="Full name" aria-label="Name"><input class="inp" id="m-role-${m.mid}" data-mf="role" value="${esc(m.role)}" placeholder="e.g. Data Engineer" aria-label="Role"><input class="inp" type="email" id="m-email-${m.mid}" data-mf="email" value="${esc(m.email)}" placeholder="name@blend360.com" aria-label="Email address"><button class="x" type="button" data-rmmember="${i}" aria-label="Remove member">✕</button></div>`).join('')}</div>
+      <div><button class="btn sm" type="button" id="addMember">+ Add team member</button></div></div>
+    <div class="row end">
+      ${!isNew ? `<button class="btn ghost danger" type="button" data-delask="${esc(d.id)}" style="margin-right:auto">Delete this project</button>` : ''}
+      ${!isNew ? '<button class="btn ghost" type="button" id="resetSetup">Discard changes</button>' : ''}
+      <button class="btn primary" type="submit">${isNew ? 'Create project' : 'Save project'}</button>
+    </div>
+  </form>`;
+}
+
+// ---------- events ----------
+document.addEventListener('click', async (e) => {
+  const a = e.target.closest('a[data-draftopen]');
+  if (a) { logDraft(); return; }
+  const t = e.target.closest('button, [data-go]');
+  if (!t) return;
+  if (t.dataset.view) { go(t.dataset.view); return; }
+  if (t.dataset.go) { go(t.dataset.go); return; }
+  if (t.dataset.submitfor) { S.editMember = t.dataset.submitfor; S.editDate = null; S.draftItems = null; S.draftText = null; go('submit', true); return; }
+  if (t.dataset.viewentry) { const u = S.updates.find(x => x.id === t.dataset.viewentry); S.logFilter = { member: u ? u.memberId : '', q: '', from: u ? u.date : '', to: u ? u.date : '' }; go('log'); return; }
+  if (t.id === 'addItem') { syncItems(); S.draftItems.push({ name: '', taskId: '', eta: '' }); render(); return; }
+  if (t.dataset.rmitem != null) { syncItems(); S.draftItems.splice(Number(t.dataset.rmitem), 1); render(); return; }
+  if (t.id === 'addMember') { syncSetup(); S.setupDraft.members.push({ mid: uid(), name: '', role: '', email: '' }); render(); return; }
+  if (t.dataset.rmmember != null) { syncSetup(); S.setupDraft.members.splice(Number(t.dataset.rmmember), 1); render(); return; }
+  if (t.id === 'resetSetup') { S.setupDraft = null; render(); return; }
+  if (t.dataset.delask) { syncSetup(); S.confirmDelete = t.dataset.delask; render(); $('#canvas').scrollTop = 0; return; }
+  if (t.dataset.delno) { S.confirmDelete = false; render(); return; }
+  if (t.dataset.delyes) { await deleteProject(t.dataset.delyes); return; }
+  if (t.dataset.mkdraft) { const p = proj(); if (!p) return; S.draft = t.dataset.mkdraft === 'morning' ? morningDraft(p) : nudgeDraft(p); render(); $('#canvas').scrollTop = 0; return; }
+  if (t.dataset.draftclose) { S.draft = null; render(); return; }
+  if (t.dataset.draftcopy) { const d = S.draft; const txt = `To: ${d.to.join('; ')}${d.cc.length ? '\nCc: ' + d.cc.join('; ') : ''}\nSubject: ${d.subject}\n\n${d.body}`; try { await navigator.clipboard.writeText(txt); toast('Email copied. Paste it into a new Outlook message.'); logDraft(); } catch (err) { const r = document.createRange(); r.selectNodeContents($('#draftBody')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('Press Ctrl/Cmd+C to copy the selected text.'); } return; }
+  if (t.dataset.delup) { S.confirmUpdate = t.dataset.delup; render(); return; }
+  if (t.dataset.delupno) { S.confirmUpdate = null; render(); return; }
+  if (t.dataset.delupyes) { await deleteUpdate(t.dataset.delupyes); return; }
+  if (t.dataset.editup) { const u = S.updates.find(x => x.id === t.dataset.editup); if (u) { S.editMember = u.memberId; S.editDate = u.date; S.draftItems = null; S.draftText = null; go('submit', true); } return; }
+  if (t.dataset.edit) { selectProject(t.dataset.edit); S.view = 'setup'; render(); return; }
+  if (t.id === 'ssSync') { await syncSmartsheet(); return; }
+  if (t.id === 'cancelImport') { S.importPreview = null; render(); return; }
+  if (t.id === 'saveImport') { await savePlan(); return; }
+});
+document.addEventListener('change', async (e) => {
+  const t = e.target;
+  if (t.id === 'projSel') {
+    if (t.value === '__new') { S.pid = null; S.setupDraft = blankProject(); S.confirmDelete = false; subscribeProject(); go('setup', true); return; }
+    selectProject(t.value); return;
+  }
+  if (t.id === 'upWho' || t.id === 'upDate') { S.editMember = $('#upWho').value; S.editDate = $('#upDate').value; S.draftItems = null; S.draftText = null; render(); return; }
+  if (t.closest('.item')) { syncItems(); if (t.dataset.f !== 'name') render(); return; }
+  if (t.id === 'fMember' || t.id === 'fFrom' || t.id === 'fTo') { readLogFilter(); render(); return; }
+  if (t.dataset.map) { S.importPreview.map[t.dataset.map] = t.value === '' ? '' : Number(t.value); render(); return; }
+  if (t.id === 'planFile' && t.files[0]) { await readPlanFile(t.files[0]); return; }
+});
+let qT;
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'fQ') { clearTimeout(qT); qT = setTimeout(() => { readLogFilter(); render(); const q = $('#fQ'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }, 300); }
+});
+document.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (e.target.id === 'upForm') await submitUpdate();
+  if (e.target.id === 'setupForm') await saveProject();
+});
+function go(view, keep) {
+  if (!keep) { S.draftItems = null; S.draftText = null; S.editDate = null; S.editMember = null; S.setupDraft = null; S.confirmDelete = false; }
+  S.view = view; store.set('duh.view', view);
+  render(); $('#canvas').scrollTop = 0;
+}
+function readLogFilter() { S.logFilter = { member: $('#fMember').value, from: $('#fFrom').value, to: $('#fTo').value, q: $('#fQ').value }; }
+function syncItems() {
+  if ($('#q-working')) S.draftText = { working: $('#q-working').value, progress: $('#q-progress').value, blockers: $('#q-blockers').value, helpNeeded: $('#q-help').checked };
+  document.querySelectorAll('.item[data-i]').forEach(row => { const i = Number(row.dataset.i); row.querySelectorAll('[data-f]').forEach(inp => { S.draftItems[i][inp.dataset.f] = inp.value; }); });
+}
+function syncSetup() {
+  const d = S.setupDraft; if (!d || !$('#setupForm')) return;
+  d.name = $('#sName').value.trim(); d.client = $('#sClient').value.trim(); d.timezone = $('#sTz').value; d.start = $('#sStart').value; d.end = $('#sEnd').value;
+  d.lead = { name: $('#lName').value.trim(), role: $('#lRole').value.trim(), email: $('#lEmail').value.trim() };
+  document.querySelectorAll('.member[data-mi]').forEach(row => { const m = d.members[Number(row.dataset.mi)]; row.querySelectorAll('[data-mf]').forEach(inp => { m[inp.dataset.mf] = inp.value.trim(); }); });
+  d._leadIsMember = $('#leadIsMember') && $('#leadIsMember').checked && !$('#leadIsMember').disabled;
+}
+
+// ---------- writes ----------
+function writeErr(err) {
+  const c = err && err.code;
+  if (c === 'invalid_argument') { S.canWrite = false; render(); return 'You don’t have permission to save to this app. Ask the owner for Contributor access.'; }
+  if (c === 'permission-denied') return 'Firebase is blocking saves. Check the Firestore rules (see the setup steps).';
+  if (c === 'quota_exceeded' || c === 'resource-exhausted') return 'The app’s storage is full. Ask the owner to archive old projects.';
+  return 'Couldn’t save just now. Check your connection and try again.';
+}
+async function saveProject() {
+  syncSetup();
+  const d = S.setupDraft;
+  if (!S.db) return toast('Shared data isn’t connected in this view.');
+  if (!d.name || !d.lead.name || !d.lead.email) return toast('Project name, lead name and lead email are required.');
+  if (d._leadIsMember) d.members.unshift({ mid: uid(), name: d.lead.name, role: d.lead.role || 'Delivery Lead', email: d.lead.email });
+  d.members = d.members.filter(m => m.name || m.email).map(m => ({ mid: m.mid || uid(), name: m.name, role: m.role, email: m.email }));
+  const bad = d.members.find(m => !m.name || !/^\S+@\S+\.\S+$/.test(m.email));
+  if (bad) return toast(`Each team member needs a name and a valid email (check ${bad.name || bad.email || 'the empty row'}).`);
+  const isNew = !d.id;
+  const id = d.id || (d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'project') + '-' + uid().slice(0, 5);
+  const body = { name: d.name, client: d.client, start: d.start, end: d.end, timezone: d.timezone, lead: d.lead, members: d.members, alerts: d.alerts || { morning: true, midday: true, lead: true }, active: true, updatedAt: new Date().toISOString(), createdAt: d.createdAt || new Date().toISOString(), createdBy: d.createdBy || S.me.id || null };
+  try {
+    await DB.doc('projects/' + id).set(body);
+    S.pid = id; store.set('duh.pid', id); S.setupDraft = null; S.confirmDelete = false;
+    subscribeProject();
+    toast(isNew ? `Created ${d.name}. Share this app with the team so they can submit.` : 'Project saved.');
+    go(isNew ? 'today' : 'setup');
+  } catch (err) { toast(writeErr(err)); }
+}
+async function deleteUpdate(id) {
+  if (!S.db) return;
+  try { await DB.doc('updates/' + id).delete(); S.confirmUpdate = null; toast('Update deleted.'); render(); }
+  catch (err) { S.confirmUpdate = null; render(); toast(writeErr(err)); }
+}
+async function deleteProject(id) {
+  const p = S.projects.find(x => x.id === id); if (!p || !S.db) return;
+  try {
+    for (const col of ['updates', 'outbox']) {
+      const snap = await DB.collection(col).where('projectId', '==', id).limit(1000).get();
+      for (let i = 0; i < snap.docs.length; i += 10) await Promise.all(snap.docs.slice(i, i + 10).map(d => DB.doc(col + '/' + d.id).delete()));
+    }
+    await DB.doc('plans/' + id).delete();
+    await DB.doc('projects/' + id).delete();
+    if (S.pid === id) { S.pid = null; store.set('duh.pid', ''); }
+    S.setupDraft = null; S.confirmDelete = false;
+    toast(`Deleted ${p.name}.`); go(S.projects.length > 1 ? 'setup' : 'today');
+  } catch (err) { S.confirmDelete = false; render(); toast(writeErr(err)); }
+}
+async function setAlert(k, on) {
+  const p = proj(); if (!p || !S.db) return;
+  try { await DB.doc('projects/' + p.id).update({ alerts: { ...(p.alerts || {}), [k]: on } }); toast(on ? 'Alert turned on.' : 'Alert turned off.'); }
+  catch (err) { toast(writeErr(err)); }
+}
+async function submitUpdate() {
+  const p = proj(); if (!p) return;
+  if (!S.db) return toast('Shared data isn’t connected in this view.');
+  syncItems();
+  const mid = $('#upWho').value, date = $('#upDate').value;
+  const m = members(p).find(x => x.mid === mid);
+  if (!m) return toast('Choose your name first.');
+  if (!date) return toast('Pick the date this update is for.');
+  const working = $('#q-working').value.trim();
+  if (!working) return toast('Answer “Currently working on” before submitting.');
+  const items = S.draftItems.filter(it => (it.name || '').trim() || it.taskId).map(it => { const t = it.taskId ? taskById(it.taskId) : null; return { name: (it.name || (t && t.name) || '').trim().slice(0, 200), taskId: it.taskId || '', taskName: t ? t.name : '', planEnd: t ? t.end : '', eta: it.eta || '' }; });
+  const id = `${p.id}_${date}_${mid}`.replace(/[^A-Za-z0-9_\-.]/g, '-');
+  const existing = S.updates.find(u => u.id === id);
+  const now = new Date().toISOString();
+  const body = { projectId: p.id, memberId: mid, memberName: m.name, memberRole: m.role, memberEmail: m.email, date, working, progress: $('#q-progress').value.trim(), blockers: $('#q-blockers').value.trim(), helpNeeded: $('#q-help').checked, items, submittedAt: existing ? existing.submittedAt : now, submittedBy: S.me.id || null };
+  if (existing) body.editedAt = now;
+  const notify = $('#notifyLead').checked && (p.alerts || {}).lead !== false && p.lead && p.lead.email;
+  const btn = $('#upSubmit'); btn.disabled = true; btn.textContent = 'Saving…';
+  try { await DB.doc('updates/' + id).set(body); }
+  catch (err) { btn.disabled = false; btn.textContent = 'Submit update'; return toast(writeErr(err)); }
+  let msg = existing ? 'Update saved.' : 'Update submitted.';
+  if (notify) { S.draft = leadDraft(p, body, !!existing); msg += ` Send the draft below to ${p.lead.name}.`; }
+  S.draftItems = null; S.draftText = null; S.editDate = null; S.editMember = null;
+  toast(msg);
+  S.logFilter = { member: '', q: '', from: '', to: '' };
+  go('today');
+}
+// ---------- plan import ----------
+async function readPlanFile(file) {
+  if (!window.XLSX) return toast('The spreadsheet reader didn’t load. Reload the page and try again.');
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const grid = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
+    const hi = grid.findIndex(r => r.filter(c => String(c).trim()).length >= 3);
+    if (hi < 0) return toast('No header row found in that file.');
+    const headers = grid[hi].map(h => String(h).trim() || '(blank)');
+    const rows = grid.slice(hi + 1).filter(r => r.some(c => String(c).trim()));
+    const jira = headers.some(h => /^issue key$/i.test(h));
+    S.importPreview = { source: jira ? 'jira' : 'file', sourceName: file.name, sourceUrl: '', headers, rows, map: guessMap(headers), sampled: false };
+    render();
+  } catch (err) { toast('Couldn’t read that file. Export it again as .csv or .xlsx.'); }
+}
+async function syncSmartsheet() {
+  const url = $('#ssUrl').value.trim(), msg = $('#ssMsg');
+  if (!/smartsheet\.com/i.test(url)) return toast('Paste a Smartsheet sheet link (app.smartsheet.com/sheets/…).');
+  if (!S.mcp) return;
+  msg.textContent = 'Reading columns…';
+  try {
+    const cols = await S.mcp.callTool('Smartsheet', 'get_columns', { url }, { cache: false });
+    const list = ((cols.payload && cols.payload.data) || []).map(c => c.title);
+    const m = guessMap(list);
+    const pick = Object.values(m).filter(i => i !== '').map(i => list[i]);
+    if (!pick.length) { msg.textContent = ''; return toast('No task or date columns found in that sheet.'); }
+    msg.textContent = 'Reading rows…';
+    const res = await S.mcp.callTool('Smartsheet', 'get_sheet_summary', { url, columns: Array.from(new Set(pick)) }, { cache: false });
+    const pl = res.payload || {};
+    const avail = (pl.availableColumns || []);
+    const headers = avail.map(c => c.title);
+    const idxOf = {}; avail.forEach((c, i) => { idxOf[c.index] = i; });
+    const rows = (pl.rows || []).map(r => { const a = headers.map(() => ''); (r.cells || []).forEach(c => { if (idxOf[c.columnIndex] != null) a[idxOf[c.columnIndex]] = c.value; }); return a; });
+    const rowIds = (pl.rows || []).map(r => String(r.rowId || ''));
+    S.importPreview = { source: 'smartsheet', sourceName: pl.sheetName || 'Smartsheet', sourceUrl: url, headers, rows, rowIds, map: guessMap(headers), sampled: !!(pl.metadata && pl.metadata.isSampled) };
+    msg.textContent = '';
+    render();
+  } catch (err) {
+    msg.textContent = '';
+    const c = err && err.code;
+    if (c === 'server_not_connected') toast('Add the Smartsheet connector in claude.ai Settings → Connectors, then try again.');
+    else if (c === 'needs_reauth') toast('Reconnect Smartsheet in claude.ai Settings → Connectors.');
+    else if (c === 'not_in_manifest' || c === 'approval_required') toast('Smartsheet access wasn’t allowed for this app. Allow it from the app’s permissions to sync.');
+    else if (c === 'tool_error') toast('Smartsheet couldn’t open that sheet. Check the link and that you have access to it.');
+    else toast('Smartsheet didn’t respond. Try again in a moment.');
+  }
+}
+async function savePlan() {
+  const p = proj(), pv = S.importPreview; if (!p || !pv || !S.db) return;
+  if (pv.map.name === '' || pv.map.end === '') return toast('Map at least the task name and end date columns.');
+  const tasks = previewTasks(pv);
+  const body = { projectId: p.id, source: pv.source, sourceName: pv.sourceName, sourceUrl: pv.sourceUrl || '', importedAt: new Date().toISOString(), sampled: !!pv.sampled, tasks };
+  try { await DB.doc('plans/' + p.id).set(body); S.importPreview = null; toast(`Plan saved with ${tasks.length} tasks.`); render(); }
+  catch (err) { toast(err && err.code === 'invalid_argument' && S.canWrite !== false ? 'That plan is too large to store. Filter it to the active phase and import again.' : writeErr(err)); }
+}
+
+// ---------- data wiring ----------
+function selectProject(id) { S.pid = id || null; store.set('duh.pid', id || ''); S.setupDraft = null; S.importPreview = null; S.draftItems = null; S.editMember = null; S.editDate = null; S.logFilter = { member: '', q: '', from: '', to: '' }; subscribeProject(); render(); }
+function subscribeProject() {
+  S.unsub.forEach(f => f()); S.unsub = [];
+  S.updates = []; S.plan = null; S.outbox = [];
+  if (!S.db || !S.pid) return;
+  const pid = S.pid;
+  S.unsub.push(DB.collection('updates').where('projectId', '==', pid).onSnapshot(snap => { if (S.pid !== pid) return; S.updates = snap.docs.map(d => ({ id: d.id, ...d.data() })); softRender(); }, dbErr));
+  S.unsub.push(DB.doc('plans/' + pid).onSnapshot(snap => { if (S.pid !== pid) return; S.plan = snap.exists ? snap.data() : null; softRender(); }, dbErr));
+  S.unsub.push(DB.collection('outbox').where('projectId', '==', pid).limit(300).onSnapshot(snap => { if (S.pid !== pid) return; S.outbox = snap.docs.map(d => ({ id: d.id, ...d.data() })); softRender(); }, dbErr));
+}
+// Avoid wiping half-typed forms when live data arrives.
+function softRender() {
+  if ((S.view === 'submit' && $('#upForm')) || (S.view === 'setup' && $('#setupForm'))) { const c = $('#cToday'), p = proj(); if (c && p) c.textContent = `${updatesFor(todayIn(tzOf(p))).length}/${members(p).length}`; return; }
+  if (S.view === 'log' && document.activeElement && document.activeElement.id === 'fQ') return;
+  render();
+}
+function dbErr(err) {
+  $('#dbDot').className = 'dot';
+  const c = err && err.code;
+  $('#dbState').textContent = c === 'revoked' ? 'Access changed; reload' : c === 'permission-denied' ? 'Firebase rules are blocking access' : 'Live sync paused; reload to retry';
+  if (c === 'permission-denied' && !S.dbReady) { S.dbReady = true; render(); $('#main').insertAdjacentHTML('afterbegin', '<div class="banner bad">The Firebase database is refusing access. Its security rules still need to allow the Daily Update Hub collections (duh_projects, duh_updates, duh_plans, duh_outbox).</div>'); }
+}
+
+async function boot() {
+  const v = store.get('duh.view'); if (v) S.view = v;
+  if (!PLAN_ENABLED) { const nb = document.querySelector('#nav [data-view="plan"]'); if (nb) nb.remove(); if (S.view === 'plan') S.view = 'today'; }
+  S.pid = store.get('duh.pid') || null;
+  render();
+  let db = null, user = null, mcp = null;
+  if (window.claude && window.claude.use) [db, user, mcp] = await Promise.all([claude.use('db'), claude.use('user'), claude.use('mcp')]);
+  const dot = $('#dbDot'), st = $('#dbState');
+  if (db) {
+    S.mode = 'claude'; DB = wrapDb(db, ''); S.user = user; S.mcp = mcp;
+    if (user) {
+      const me = await user.me(); S.me = { id: me.id, email: me.email, name: me.name };
+      S.canWrite = await user.can('data.write');
+      $('#footWho').textContent = 'Signed in as ' + (me.name || me.email || 'you');
+    }
+    dot.className = 'dot on'; st.textContent = 'Live · shared with your team';
+  } else if (FIREBASE_CONFIG.projectId) {
+    try {
+      await loadScript('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js');
+      firebase.initializeApp(FIREBASE_CONFIG);
+      const fs = firebase.firestore(); try { fs.settings({ ignoreUndefinedProperties: true }); } catch (e) {} DB = wrapDb(fs, FIRESTORE_PREFIX); S.mode = 'firebase';
+      dot.className = 'dot on'; st.textContent = 'Live · shared with your team';
+      $('#footWho').textContent = 'Blend Share edition';
+    } catch (e) {
+      DB = wrapDb(makeLocalDb(), ''); S.mode = 'local';
+      st.textContent = 'Couldn’t reach Firebase; saving in this browser';
+    }
+  } else {
+    DB = wrapDb(makeLocalDb(), ''); S.mode = 'local';
+    st.textContent = 'Preview · saved in this browser only';
+    $('#footWho').textContent = 'Preview mode';
+  }
+  S.db = DB;
+  DB.collection('projects').onSnapshot(snap => {
+    S.projects = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.active !== false).sort((a, b) => a.name.localeCompare(b.name));
+    const first = !S.dbReady; S.dbReady = true;
+    if (!S.pid || !S.projects.some(p => p.id === S.pid)) {
+      const keepNew = S.view === 'setup' && S.setupDraft && !S.setupDraft.id;
+      if (!keepNew) { S.pid = S.projects[0] ? S.projects[0].id : null; subscribeProject(); }
+    } else if (first) subscribeProject();
+    if (!S.projects.length && first) { S.view = 'setup'; S.setupDraft = blankProject(); }
+    softRender();
+  }, dbErr);
+}
+boot();
+})();
+</script>
+
+</body>
+</html>
